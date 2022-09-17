@@ -27,9 +27,76 @@ app.use(express.json());
 app.use(cors());
 
 /* ----- SERVER ROUTES ----- */
-// setup a 'route' to listen on the default/origin url path (http:/ / localhost/)
+// setup a 'route' to listen on the default/origin url path (http://localhost:3000/)
 app.get('/', (req, res) => {
   res.json({ message: 'API Listening' });
+});
+
+// CREATE operations
+app.post('/api/movies', (req, res) => {
+  db.addNewMovie(req.body)
+    .then((data) => {
+      res.status(201).send(data);
+    })
+    .catch((error) => {
+      res.status(500).send(error);
+    });
+});
+
+// READ operations
+app.get('/api/movies', (req, res) => {
+  // console.log(req.query.page, req.query.perPage, req.query.title); // testing successful retrieval of query data
+  if (req.query.page && req.query.perPage) {
+    db.getAllMovies(req.query.page, req.query.perPage, req.query.title)
+      .then((data) => {
+        res.status(data.length != 0 ? 200 : 204).json(data);
+      })
+      .catch((error) => {
+        res.status(500).send(error);
+      });
+  } else {
+    res.status(400).send({
+      error: 'No results retrieved.',
+      solution:
+        'Please specify the mandatory "page" and "perPage" queries in the route. An optional title query also exists.',
+      example: '/api/movies?page=1&perPage=25&title=Newark Athlete',
+    });
+  }
+});
+
+app.get('/api/movies/:id', (req, res) => {
+  // console.log(req.params.id); // testing successful retrieval of param(s)
+  db.getMovieById(req.params.id)
+    .then((data) => {
+      res.status(data.length != 0 ? 200 : 204).send(data);
+    })
+    .catch((error) => {
+      res.status(500).send(error);
+    });
+});
+
+// UPDATE operations
+app.put('/api/movies/:id', (req, res) => {
+  // console.log(req.params.id); // testing successful retrieval of param(s)
+  db.updateMovieById(req.body, req.params.id)
+    .then((message) => {
+      res.status(200).send(message);
+    })
+    .catch((error) => {
+      res.status(500).send(error);
+    });
+});
+
+// DELETE operations
+app.delete('/api/movies/:id', (req, res) => {
+  // console.log(req.params.id); // testing successful retrieval of param(s)
+  db.deleteMovieById(req.params.id)
+    .then((message) => {
+      res.status(200).send(message);
+    })
+    .catch((error) => {
+      res.status(500).send(error);
+    });
 });
 
 /* 
